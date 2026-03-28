@@ -10,7 +10,7 @@ void TMR0_init(void){
     OPTION_REG = 0x02;
 
     TMR0 = 131;
-    INTCON |= 0xA0 
+    INTCON |= 0xA0;
     return;
 }
 

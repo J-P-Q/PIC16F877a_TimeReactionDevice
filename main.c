@@ -26,27 +26,34 @@
 #define HALF (666 - GAP)
 
 #include <PWM.h>
+#include <TMR0.h>
 
 
 void playNokia(void);
 
 
-volatile uint8_t counter = 0x00;
+volatile uint16_t counter_ms = 0;
 
 
 void __interrupt() ISR(void){
     // TMR0IF
     if(INTCON & 0x04){
         INTCON &= ~0xA0;
-        
+        TMR0_overflowReset();
+        counter_ms ++;
+        INTCON |= 0xA0;
+        if(counter_ms % 1000 == 0){
+            PORTD = ~PORTD;
+        }
     }
     return;
 }
 
 void main(void) {
+    TRISD = 0x00;
     
     PWM_init();
-    
+    TMR0_init();
 
     while(1){
         playNokia();
