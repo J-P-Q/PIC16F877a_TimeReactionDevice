@@ -30,21 +30,33 @@
 
 
 void playNokia(void);
+void ExtInt_init(void);
 
 
 volatile uint16_t counter_ms = 0;
+volatile uint8_t buttonPressed = 0;
 
 
 void __interrupt() ISR(void){
     // TMR0IF
     if(INTCON & 0x04){
         INTCON &= ~0xA0;
+
         TMR0_overflowReset();
         counter_ms ++;
+
+        INTCON &= ~0x04;
         INTCON |= 0xA0;
-        if(counter_ms % 1000 == 0){
-            PORTD = ~PORTD;
-        }
+    }
+
+    // INTF
+    if(INTCON & 0x02){    
+        INTCON &= ~0xA0;
+        
+        buttonPressed = 1;
+
+        INTCON &= ~0x02;
+        INTCON |= 0xA0;
     }
     return;
 }
@@ -52,12 +64,21 @@ void __interrupt() ISR(void){
 void main(void) {
     TRISD = 0x00;
     
-    PWM_init();
+    
+    //PWM_init();
     TMR0_init();
+    ExtInt_init();
 
     while(1){
-        playNokia();
-        __delay_ms(1000);
+        //playNokia();
+        
+        if(buttonPressed){
+            __delay_ms(10);
+            if(!(PORTB & 0x01)){
+                PORTD = ~PORTD;
+                buttonPressed = 0;
+            }
+        }
     }
     
     return;
@@ -123,3 +144,11 @@ void playNokia(void){
     return;
 
 }
+
+void ExtInt_init(void){
+    TRISB = 0xFF;
+    INTCON |= 0x10;
+
+    return;
+}
+
