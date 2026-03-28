@@ -33,6 +33,16 @@ void playNokia(void);
 
 volatile uint8_t counter = 0x00;
 
+
+void __interrupt() ISR(void){
+    // TMR0IF
+    if(INTCON & 0x04){
+        INTCON &= ~0xA0;
+        
+    }
+    return;
+}
+
 void main(void) {
     
     PWM_init();
