@@ -1,0 +1,23 @@
+# --- MPLAB X Specifics ---
+# Ignore the entire build output directory
+build/
+_build/
+dist/
+nbproject/private/
+nbproject/Makefile-*
+nbproject/Package-*
+
+# --- IDE and OS Specifics ---
+.vscode/
+.DS_Store
+Thumbs.db
+
+# --- CMake & Compilation Artifacts ---
+cmake/
+out/
+*.o
+*.d
+*.elf
+*.hex
+*.map
+*.o.d
