@@ -3,6 +3,10 @@
 
 
 void PWM_init(void){
+    CCP1CON = 0x00;
+    CCPR1L = 0x00;
+    PR2 = 0x00;
+
     TRISC &= ~0x04;     
 
     CCP1CON = 0x0C;     // PWM mode
