@@ -125,15 +125,17 @@ void main(void) {
                 timeLedOn = counter_ms;
                 PORTD = 0xFF;
 
+                while(!buttonPressed && counter_ms < 5000);
+
                 if(buttonPressed){              // DO NOT TOUCH, WORKING BUTTON HERE
                     //__delay_ms(debounce);
 
                     if(!(PORTB & 0x01)){
+                        timeLedOff = 0x00;
                         timeLedOff = counter_ms;
 
                         PORTD = 0x00;
                         tooSlow = 0x00;                        
-                        playNokia();
                         
                         while(!(PORTB & 0x01)); 
                         
@@ -154,12 +156,22 @@ void main(void) {
                 if(tooSlow){
                     // display too slow on display
                 }
-                else{
+                else if(!tooSlow){
                     // display reaction time on display
                 }
-                
-                
-                //state = 0;
+
+                if(buttonPressed){              // DO NOT TOUCH, WORKING BUTTON HERE
+                    //__delay_ms(debounce);
+
+                    if(!(PORTB & 0x01)){
+                        
+                        state = 0;
+                        while(!(PORTB & 0x01)); 
+                        
+                    }
+                    buttonPressed = 0;   
+                }
+                 
                 break;
             
                 
@@ -228,6 +240,8 @@ void playNokia(void){
     // #13 A4       HALF
     PWM_freq_AdaptiveDuty(440);      __delay_ms(HALF);
     PWM_freq_AdaptiveDuty(0);    __delay_ms(GAP);
+
+    PWM_init();
 
     TMR0_init();
     return;
