@@ -32,12 +32,45 @@
 
 
 void playNokia(void);
+void playLose(void);
 void ExtInt_init(void);
-void generateRandom(void) ;
+void generateRandom(void);
+
+/* 
+7 Segment
+bits:
+0 = a
+1 = f
+2 = b
+3 = g
+4 = c
+5 = d
+6 = e
+*/
+const uint8_t sevSeg[16] ={
+    0b11110111,     // 0
+    0b00010100,     // 1
+    0b01101101,     // 2
+    0b00111101,     // 3
+    0b00011110,     // 4
+    0b00111011,     // 5
+    0b01111011,     // 6
+    0b00010101,     // 7
+    0b01111111,     // 8
+    0b00111111,     // 9
+
+    0b01001111,     // P
+    0b01100010,     // L
+    0b01011111,     // A
+    0b00111110,     // y
+
+    0b01110011,     // G
+    0b01111000     // o
+};
 
 volatile uint16_t counter_ms = 0;
 volatile uint8_t buttonPressed = 0;
-volatile uint8_t state = 0;
+volatile uint8_t state = 5;
 
 volatile uint16_t seed = 12345;  // for random number
 volatile uint16_t randomNum = 0;   // for random number
@@ -50,7 +83,7 @@ void __interrupt() ISR(void){
     // INTF
     if(INTCON & 0x02){    
         buttonPressed = 1;
-        //PORTD = 0xFF;     // On LED
+        //PORTE = 0xFF;     // On LED
         INTCON &= ~0x02;
         return;
     }
@@ -62,7 +95,7 @@ void __interrupt() ISR(void){
         TMR0_overflowReset();
         counter_ms ++;
         if(counter_ms % 1000 == 0){     // Test, remove this later on
-            //PORTD = ~PORTD;
+            //PORTE = ~PORTE;
         }
         
         INTCON &= ~0x04;
@@ -74,8 +107,8 @@ void __interrupt() ISR(void){
 }
 
 void main(void) {
-    TRISD = 0x00;
-    PORTD = 0x00;
+    TRISE = 0x00;
+    PORTE = 0x00;
     
     
     PWM_init();
@@ -123,7 +156,7 @@ void main(void) {
                 // On LED
                 counter_ms = 0x00;     
                 timeLedOn = counter_ms;
-                PORTD = 0xFF;
+                PORTE = 0xFF;
 
                 while(!buttonPressed && counter_ms < 5000);
 
@@ -134,9 +167,9 @@ void main(void) {
                         timeLedOff = 0x00;
                         timeLedOff = counter_ms;
 
-                        PORTD = 0x00;
+                        PORTE = 0x00;
                         tooSlow = 0x00;                        
-                        
+                        playNokia();
                         while(!(PORTB & 0x01)); 
                         
                     }
@@ -144,9 +177,9 @@ void main(void) {
                 }
                 else{   // Missed the button press
                     
-                    PORTD = 0x00;
+                    PORTE = 0x00;
                     tooSlow = 0x01;
-                    playNokia();
+                    playLose();
                 }
                 
                 state = 2;
@@ -172,6 +205,15 @@ void main(void) {
                     buttonPressed = 0;   
                 }
                  
+                break;
+
+            case 5:     // Testing Case 
+                uint8_t i;
+                for(i = 0; i < 15; i++){
+                    PORTD = sevSeg[i];
+                    __delay_ms(500);
+                }
+                
                 break;
             
                 
@@ -245,6 +287,34 @@ void playNokia(void){
 
     TMR0_init();
     return;
+}
+
+void playLose(void){
+    uint16_t f;
+    TMR0_disable();
+    
+    PWM_freq_AdaptiveDuty(523); __delay_ms(80);   // C5
+    PWM_freq_AdaptiveDuty(0);   __delay_ms(20);
+    PWM_freq_AdaptiveDuty(494); __delay_ms(80);   // B4
+    PWM_freq_AdaptiveDuty(0);   __delay_ms(20);
+    PWM_freq_AdaptiveDuty(466); __delay_ms(80);   // Bb4
+    PWM_freq_AdaptiveDuty(0);   __delay_ms(20);
+    PWM_freq_AdaptiveDuty(440); __delay_ms(80);   // A4
+    PWM_freq_AdaptiveDuty(0);   __delay_ms(20);
+    PWM_freq_AdaptiveDuty(415); __delay_ms(80);   // Ab4
+    PWM_freq_AdaptiveDuty(0);   __delay_ms(20);
+    PWM_freq_AdaptiveDuty(392); __delay_ms(80);   // G4
+    PWM_freq_AdaptiveDuty(0);   __delay_ms(20);
+    PWM_freq_AdaptiveDuty(370); __delay_ms(80);   // F#4
+    PWM_freq_AdaptiveDuty(0);   __delay_ms(20);
+
+    // final low held note
+    PWM_freq(294); __delay_ms(600);  // D4
+    PWM_freq(0);
+
+    PWM_init();
+
+    TMR0_init();
 }
 
 void ExtInt_init(void){
