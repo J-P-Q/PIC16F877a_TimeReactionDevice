@@ -33,11 +33,18 @@
 
 void playNokia(void);
 void ExtInt_init(void);
-
+void generateRandom(void) ;
 
 volatile uint16_t counter_ms = 0;
 volatile uint8_t buttonPressed = 0;
-volatile uint8_t state = 1;
+volatile uint8_t state = 0;
+
+volatile uint16_t seed = 12345;  // for random number
+volatile uint16_t randomNum = 0;   // for random number
+
+volatile uint16_t timeLedOn = 0x00;
+volatile uint16_t timeLedOff = 0x00;
+volatile uint16_t tooSlow = 0x00;
 
 void __interrupt() ISR(void){
     // INTF
@@ -80,31 +87,78 @@ void main(void) {
 
         switch(state){
             case 0:
-                // press to start
-                break;
+                // display play on display
 
-            case 1:
-                // random timer
-                // On LED
+                // Button
                 if(buttonPressed){              // DO NOT TOUCH, WORKING BUTTON HERE
                     //__delay_ms(debounce);
 
                     if(!(PORTB & 0x01)){
-                        PORTD = ~PORTD;
+                        
+                        generateRandom();
+                        randomNum = seed & 0x0FFF;
+                        state = 1;
                         while(!(PORTB & 0x01)); 
                         
                     }
                     buttonPressed = 0;   
                 }
-                // Logic for time measure press
-                    //INTCON &= ~0x20;                // off timer immediately
-                    //save time
-                    //state = 2;
+
+                break;
+
+            case 1:
+                // display 3 2 1 go on display
+
+                // Random Time before turning on LED
+                uint16_t nowTime;
+                uint16_t prevTime;                
+
+                counter_ms = 0x00;     
+                prevTime = counter_ms;
+                nowTime = counter_ms;
+                while(nowTime - prevTime < randomNum){
+                    nowTime = counter_ms;
+                }
+               
+                // On LED
+                counter_ms = 0x00;     
+                timeLedOn = counter_ms;
+                PORTD = 0xFF;
+
+                if(buttonPressed){              // DO NOT TOUCH, WORKING BUTTON HERE
+                    //__delay_ms(debounce);
+
+                    if(!(PORTB & 0x01)){
+                        timeLedOff = counter_ms;
+
+                        PORTD = 0x00;
+                        tooSlow = 0x00;                        
+                        playNokia();
+                        
+                        while(!(PORTB & 0x01)); 
+                        
+                    }
+                    buttonPressed = 0;   
+                }
+                else{   // Missed the button press
+                    
+                    PORTD = 0x00;
+                    tooSlow = 0x01;
+                    playNokia();
+                }
+                
+                state = 2;
                 break;
 
             case 2:
-                // display result
-                playNokia();
+                if(tooSlow){
+                    // display too slow on display
+                }
+                else{
+                    // display reaction time on display
+                }
+                
+                
                 //state = 0;
                 break;
             
@@ -119,6 +173,7 @@ void main(void) {
 
 
 void playNokia(void){
+    TMR0_disable();
     
     // #1 E5        8th note
     PWM_freq_AdaptiveDuty(659);      __delay_ms(EIGHTH);
@@ -174,8 +229,8 @@ void playNokia(void){
     PWM_freq_AdaptiveDuty(440);      __delay_ms(HALF);
     PWM_freq_AdaptiveDuty(0);    __delay_ms(GAP);
 
+    TMR0_init();
     return;
-
 }
 
 void ExtInt_init(void){
@@ -185,3 +240,7 @@ void ExtInt_init(void){
     return;
 }
 
+void generateRandom(void){
+    seed = (seed * 1664525 + 1013904223);  
+    return;
+}

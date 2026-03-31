@@ -3,4 +3,5 @@
 
 void TMR0_init(void);
 void TMR0_overflowReset(void);
+void TMR0_disable(void);
 #endif

@@ -19,3 +19,8 @@ void TMR0_overflowReset(void){
     INTCON &= ~0x04;
     return;
 }
+
+void TMR0_disable(void){
+    INTCON &= ~0x20;
+    return;
+}
