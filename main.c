@@ -35,6 +35,10 @@ void playNokia(void);
 void playLose(void);
 void ExtInt_init(void);
 void generateRandom(void);
+void displayTime(uint16_t time);
+void dislpayCountDown(void);
+void displayTooSlow(void);
+void displayPlay(void);
 
 /* 
 7 Segment
@@ -70,7 +74,7 @@ const uint8_t sevSeg[16] ={
 
 volatile uint16_t counter_ms = 0;
 volatile uint8_t buttonPressed = 0;
-volatile uint8_t state = 5;
+volatile uint8_t state = 0;
 
 volatile uint16_t seed = 12345;  // for random number
 volatile uint16_t randomNum = 0;   // for random number
@@ -107,6 +111,10 @@ void __interrupt() ISR(void){
 }
 
 void main(void) {
+    ADCON1 = 0x06;
+    TRISA = 0x00;
+    PORTA = 0x00;
+
     TRISD = 0x00;
     PORTD = 0x00;
 
@@ -123,8 +131,7 @@ void main(void) {
 
         switch(state){
             case 0:
-                // display play on display
-
+                displayPlay();
                 // Button
                 if(buttonPressed){              // DO NOT TOUCH, WORKING BUTTON HERE
                     //__delay_ms(debounce);
@@ -143,7 +150,7 @@ void main(void) {
                 break;
 
             case 1:
-                // display 3 2 1 go on display
+                dislpayCountDown();
 
                 // Random Time before turning on LED
                 uint16_t nowTime;
@@ -169,6 +176,8 @@ void main(void) {
                     if(!(PORTB & 0x01)){
                         timeLedOff = 0x00;
                         timeLedOff = counter_ms;
+                        
+                        
 
                         PORTE = 0x00;
                         tooSlow = 0x00;                        
@@ -190,10 +199,10 @@ void main(void) {
 
             case 2:
                 if(tooSlow){
-                    // display too slow on display
+                    displayTooSlow();
                 }
                 else if(!tooSlow){
-                    // display reaction time on display
+                    displayTime(timeLedOff - timeLedOn);
                 }
 
                 if(buttonPressed){              // DO NOT TOUCH, WORKING BUTTON HERE
@@ -211,11 +220,7 @@ void main(void) {
                 break;
 
             case 5:     // Testing Case 
-                uint8_t i;
-                for(i = 0; i <= 15; i++){
-                    PORTD = sevSeg[i];
-                    __delay_ms(500);
-                }
+                displayPlay();
                 
                 break;
             
@@ -329,5 +334,96 @@ void ExtInt_init(void){
 
 void generateRandom(void){
     seed = (seed * 1664525 + 1013904223);  
+    return;
+}
+
+void displayTime(uint16_t time){
+    PORTD = sevSeg[time % 10];
+    PORTA = 0x08;
+    __delay_ms(2);
+    PORTA = 0x00;
+
+    PORTD = sevSeg[(time / 10) % 10];
+    PORTA = 0x04;
+    __delay_ms(2);
+    PORTA = 0x00;
+
+    PORTD = sevSeg[(time / 100) % 10];
+    PORTA = 0x02;
+    __delay_ms(2);
+    PORTA = 0x00;
+
+    PORTD = sevSeg[(time / 1000) % 10];
+    PORTA = 0x01;
+    __delay_ms(2);
+    PORTA = 0x00;
+    
+    return;
+}
+
+void dislpayCountDown(void){
+    PORTD = sevSeg[3];
+    PORTA = 0x0F;
+    __delay_ms(1000);
+    PORTA = 0x00;
+
+    PORTD = sevSeg[2];
+    PORTA = 0x0F;
+    __delay_ms(1000);
+    PORTA = 0x00;
+
+    PORTD = sevSeg[1];
+    PORTA = 0x0F;
+    __delay_ms(1000);
+    PORTA = 0x00;
+
+    return;
+}
+
+void displayTooSlow(void){
+    PORTD = sevSeg[15];
+    PORTA = 0x08;
+    __delay_ms(2);
+    PORTA = 0x00;
+
+    PORTD = sevSeg[11];
+    PORTA = 0x04;
+    __delay_ms(2);
+    PORTA = 0x00;
+
+    PORTD = sevSeg[5];
+    PORTA = 0x02;
+    __delay_ms(2);
+    PORTA = 0x00;
+
+    PORTD = sevSeg[2];
+    PORTA = 0x01;
+    __delay_ms(2);
+    PORTA = 0x00;
+    
+    return;
+}
+
+void displayPlay(void){
+    PORTD = sevSeg[13];
+    PORTA = 0x08;
+    __delay_ms(2);
+    PORTA = 0x00;
+
+    PORTD = sevSeg[12];
+    PORTA = 0x04;
+    __delay_ms(2);
+    PORTA = 0x00;
+
+    PORTD = sevSeg[11];
+    PORTA = 0x02;
+    __delay_ms(2);
+    PORTA = 0x00;
+
+    PORTD = sevSeg[10];
+    PORTA = 0x01;
+    __delay_ms(2);
+    PORTA = 0x00;
+
     return;
 }
