@@ -34,6 +34,7 @@
 void playNokia(void);
 void playLose(void);
 void ExtInt_init(void);
+void ExtInt_disable(void);
 void generateRandom(void);
 void displayTime(uint16_t time);
 void dislpayCountDown(void);
@@ -142,6 +143,7 @@ void main(void) {
                         randomNum = seed & 0x0FFF;
                         state = 1;
                         while(!(PORTB & 0x01)); 
+                        ExtInt_disable();
                         
                     }
                     buttonPressed = 0;   
@@ -150,6 +152,7 @@ void main(void) {
                 break;
 
             case 1:
+                PORTE = 0x00;
                 dislpayCountDown();
 
                 // Random Time before turning on LED
@@ -167,6 +170,7 @@ void main(void) {
                 counter_ms = 0x00;     
                 timeLedOn = counter_ms;
                 PORTE = 0xFF;
+                ExtInt_init();
 
                 while(!buttonPressed && counter_ms < 5000);
 
@@ -193,26 +197,29 @@ void main(void) {
                     tooSlow = 0x01;
                     playLose();
                 }
-                
+                ExtInt_init();
                 state = 2;
                 break;
 
             case 2:
+                
                 if(tooSlow){
                     displayTooSlow();
                 }
                 else if(!tooSlow){
                     displayTime(timeLedOff - timeLedOn);
                 }
-
+                
+                  
                 if(buttonPressed){              // DO NOT TOUCH, WORKING BUTTON HERE
                     //__delay_ms(debounce);
 
                     if(!(PORTB & 0x01)){
                         
                         state = 0;
+                        PORTA = 0x00;
                         while(!(PORTB & 0x01)); 
-                        
+                        ExtInt_init();
                     }
                     buttonPressed = 0;   
                 }
@@ -328,7 +335,12 @@ void playLose(void){
 void ExtInt_init(void){
     TRISB = 0xFF;
     INTCON |= 0x10;
+    buttonPressed = 0;
+    return;
+}
 
+void ExtInt_disable(void){
+    INTCON &= ~0x10;
     return;
 }
 
