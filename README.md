@@ -15,7 +15,7 @@ The device remains in idle until the push button is press to start the game/roun
 The PWM's duty cycle register apparently does not scale to the period. So if the period was set to 127 and the duty to 127, it would be 100% duty cycle and not 50% of the half from full period. This issue was resolved after the duty was made to adjust and adapt to the frequency set in a new function.  
 
 ## Demo
-[Watch demo on Youtube] 
+[Watch demo on Youtube] https://youtu.be/SvXxhZElWMA
 
 ## Build
 Written in C using MPLAB with VSCode as the editor
