@@ -1,5 +1,5 @@
 # PIC16F877a Time Reaction Device
-A time reaction device made with the PIC16F877a microcontroller in baremetal c. 
+A time reaction device made with the PIC16F877a microcontroller in baremetal c. This was a term end group project for my Embedded Systems Laboratory Class.
 
 ## Hardware
 - PIC16F877a
